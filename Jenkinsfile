@@ -1,6 +1,5 @@
 pipeline {
     agent any
-
     stages {
         stage('Clone') {
             steps {
@@ -32,26 +31,35 @@ pipeline {
         stage('Publish to folder') {
             steps {
                 echo 'Publishing to folder...'
-                bat 'dotnet publish -c Release -o ./publish'
+                // ⚠️ Nếu đang publish solution (.sln), nên publish project cụ thể
+                bat 'dotnet publish ./projectnet/projectnet.csproj -c Release -o ./publish'
             }
         }
 
         stage('Copy to IIS folder') {
             steps {
                 echo 'Copying to IIS folder...'
-                // iisreset /stop // stop iis de ghi de file
-                bat 'xcopy "%WORKSPACE%\\publish" /E /Y /I /R "c:\\wwwroot\\myproject"'
+                bat 'xcopy "%WORKSPACE%\\publish" /E /Y /I /R "C:\\wwwroot\\myproject"'
             }
         }
 
         stage('Deploy to IIS') {
             steps {
                 powershell '''
-                # Tạo website nếu chưa có
-                Import-Module WebAdministration
-                if (-not (Test-Path IIS:\\Sites\\MySite)) {
-                    New-Website -Name "MySite" -Port 81 -PhysicalPath "c:\\test1-netcore"
-                }
+                    $targetPath = "C:\\wwwroot\\myproject"
+
+                    # Tạo thư mục nếu chưa tồn tại
+                    if (-Not (Test-Path $targetPath)) {
+                        New-Item -Path $targetPath -ItemType Directory -Force
+                    }
+
+                    # Yêu cầu quyền Admin để truy cập IIS
+                    Import-Module WebAdministration
+
+                    # Tạo website nếu chưa có
+                    if (-not (Test-Path IIS:\\Sites\\MySite)) {
+                        New-Website -Name "MySite" -Port 81 -PhysicalPath $targetPath
+                    }
                 '''
             }
         }
