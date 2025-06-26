@@ -1,50 +1,52 @@
 pipeline {
     agent any
+
     stages {
         stage('Clone') {
             steps {
                 git branch: 'main', url: 'https://github.com/Anh-star/projectnet.git'
             }
         }
-    }
-}
-	stage('restore package') {
-		steps
-		{
-			echo 'Restore package'
-			bat 'dotnet restore'
-		}
-	}
-stage ('build') {
-		steps {
-			echo 'build project netcore'
-			bat 'dotnet build  --configuration Release'
-		}
-	}
-stage ('tests') {
-		steps{
-			echo 'running test...'
-			bat 'dotnet test --no-build --verbosity normal'
-		}
-	}
-stage ('public den t thu muc')
-	{
-		steps{
-			echo 'Publishing...'
-			bat 'dotnet publish -c Release -o ./publish'
-		}
-	}
-	stage ('Publish') {
-		steps {
-			echo 'public 2 runnig folder'
-		//iisreset /stop // stop iis de ghi de file 
-			bat 'xcopy "%WORKSPACE%\\publish" /E /Y /I /R "c:\\wwwroot\\myproject"'
- 		}
-	}
-stage('Deploy to IIS') {
+
+        stage('Restore packages') {
+            steps {
+                echo 'Restoring packages...'
+                bat 'dotnet restore'
+            }
+        }
+
+        stage('Build project') {
+            steps {
+                echo 'Building project...'
+                bat 'dotnet build --configuration Release'
+            }
+        }
+
+        stage('Run tests') {
+            steps {
+                echo 'Running tests...'
+                bat 'dotnet test --no-build --verbosity normal'
+            }
+        }
+
+        stage('Publish to folder') {
+            steps {
+                echo 'Publishing to folder...'
+                bat 'dotnet publish -c Release -o ./publish'
+            }
+        }
+
+        stage('Copy to IIS folder') {
+            steps {
+                echo 'Copying to IIS folder...'
+                // iisreset /stop // stop iis de ghi de file
+                bat 'xcopy "%WORKSPACE%\\publish" /E /Y /I /R "c:\\wwwroot\\myproject"'
+            }
+        }
+
+        stage('Deploy to IIS') {
             steps {
                 powershell '''
-               
                 # Tạo website nếu chưa có
                 Import-Module WebAdministration
                 if (-not (Test-Path IIS:\\Sites\\MySite)) {
@@ -52,4 +54,6 @@ stage('Deploy to IIS') {
                 }
                 '''
             }
-        } // end deploy iis
+        }
+    }
+}
