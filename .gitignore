@@ -1,0 +1,43 @@
+
+## Build results
+bin/
+obj/
+*.exe
+*.dll
+*.app
+*.log
+*.vspscc
+*.vssscc
+
+## User-specific files
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+## VS Code workspace
+.vscode/
+
+## Visual Studio
+.vs/
+
+## ASP.NET Core
+wwwroot/
+project.lock.json
+project.fragment.lock.json
+
+## Publish
+/publish/
+/out/
+
+## Logs
+*.log
+
+## Temporary files
+*.tmp
+*.temp
+
+## OS-specific
+.DS_Store
+Thumbs.db
+ehthumbs.db
