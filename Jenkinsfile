@@ -28,20 +28,19 @@ pipeline {
             }
         }
 
-        stage('Publish to folder') {
-            steps {
-                echo 'Publishing to folder...'
-                // ⚠️ Nếu đang publish solution (.sln), nên publish project cụ thể
-                bat 'dotnet publish ./projectnet/projectnet.csproj -c Release -o ./publish'
-            }
-        }
+stage('Publish to folder') {
+    steps {
+        echo 'Publishing to folder...'
+        bat 'dotnet publish ./projectnet/projectnet.csproj -c Release -o ./publish'
+    }
+}
 
-        stage('Copy to IIS folder') {
-            steps {
-                echo 'Copying to IIS folder...'
-                bat 'xcopy "%WORKSPACE%\\publish" /E /Y /I /R "C:\\wwwroot\\myproject"'
-            }
-        }
+stage('Copy to IIS folder') {
+    steps {
+        echo 'Copying to IIS folder...'
+        bat 'xcopy "%WORKSPACE%\\publish" /E /Y /I /R "C:\\wwwroot\\myproject"'
+    }
+}
 
         stage('Deploy to IIS') {
             steps {
