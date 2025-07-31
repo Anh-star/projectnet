@@ -1,5 +1,6 @@
-var builder = WebApplication.CreateBuilder(args);
 
+var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://0.0.0.0:80");
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
