@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    environment {
+        DOCKER_IMAGE = "projectnet:latest"
+        DOCKER_CONTAINER = "projectnet-container"
+    }
     stages {
         stage('Clone') {
             steps {
@@ -28,39 +32,38 @@ pipeline {
             }
         }
 
-stage('Publish to folder') {
-    steps {
-        echo 'Publishing to folder...'
-        bat 'dotnet publish ./projectnet/projectnet.csproj -c Release -o ./publish'
-    }
-}
-
-stage('Copy to IIS folder') {
-    steps {
-        echo 'Copying to IIS folder...'
-        bat 'xcopy "%WORKSPACE%\\publish" /E /Y /I /R "C:\\wwwroot\\myproject"'
-    }
-}
-
-        stage('Deploy to IIS') {
+        stage('Publish') {
             steps {
-                powershell '''
-                    $targetPath = "C:\\wwwroot\\myproject"
+                echo 'Publishing project...'
+                bat 'dotnet publish ./projectnet/projectnet.csproj -c Release -o ./publish'
+            }
+        }
 
-                    # Tạo thư mục nếu chưa tồn tại
-                    if (-Not (Test-Path $targetPath)) {
-                        New-Item -Path $targetPath -ItemType Directory -Force
-                    }
+        stage('Build Docker Image') {
+            steps {
+                echo 'Building Docker image...'
+                bat 'docker build -t projectnet:latest -f Dockerfile .'
+            }
+        }
 
-                    # Yêu cầu quyền Admin để truy cập IIS
-                    Import-Module WebAdministration
-
-                    # Tạo website nếu chưa có
-                    if (-not (Test-Path IIS:\\Sites\\MySite)) {
-                        New-Website -Name "MySite" -Port 81 -PhysicalPath $targetPath
-                    }
+        stage('Run Docker Container') {
+            steps {
+                echo 'Running Docker container...'
+                bat '''
+                    docker stop %DOCKER_CONTAINER% || true
+                    docker rm %DOCKER_CONTAINER% || true
+                    docker run -d --name %DOCKER_CONTAINER% -p 81:80 %DOCKER_IMAGE%
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Deployment succeeded!'
+        }
+        failure {
+            echo '❌ Build or deployment failed.'
         }
     }
 }
